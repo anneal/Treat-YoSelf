@@ -1,0 +1,18 @@
+{% extends 'tys_webapp/base.html' %}
+{% load bootstrap3 %}
+
+{% block title %} - Etsy Edition{% endblock %}
+{% block title2 %} - Etsy Edition{% endblock %}
+
+{% block content %}
+    <p><br><br>Hello {{ username }}</p>
+
+    <form class="PreferenceForm" method="POST">
+    {% csrf_token %}
+    {% bootstrap_form form layout="horizontal" %}
+    {{ inclusive_key_set }}
+    {{ exclusive_key_set }}
+    {% buttons submit='OK' reset='Cancel' layout='horizontal' %}{% endbuttons %}
+    </form>
+
+{% endblock %}

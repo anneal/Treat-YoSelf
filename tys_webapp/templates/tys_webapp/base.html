@@ -1,0 +1,32 @@
+{% load bootstrap3 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Treat Yo'Self{% block title %}{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="anneal">
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <header>
+            <h1>Treat Yo'Self{% block title2 %}{% endblock %}</h1>
+        </header>
+        <div class="container page">
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+            <hr>
+            {% block footer %}
+            <footer class="footer">
+                <p>&copy; anneal 2015</p>
+            </footer>
+            {% endblock %}
+        </div>
+    </body>
+</html>
