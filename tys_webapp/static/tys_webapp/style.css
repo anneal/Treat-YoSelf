@@ -1,0 +1,20 @@
+body {
+    background-color: #EBD6D6;
+    color: #004D4D;
+    margin: 0px;
+    position: relative;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    font-family: sans-serif;
+    font-variant: small-caps;
+}
+
+h1 {
+    font-size: 48px;
+    font-weight: 100;
+}
+
+footer {
+    text-align: left;
+}
