@@ -44,3 +44,34 @@ class EtsyUser(models.Model):
 
     def __str__(self):
         return 'Etsy User ID: %s' % self.etsy_user_id
+
+
+class UserPreference(models.Model):
+    user = models.OneToOneField(EtsyUser)
+    ship_frequency = models.PositiveIntegerField(default=14)
+    next_ship_date = models.DateField(default=timezone.now)
+    price_max = models.DecimalField(max_digits=8,
+                                    decimal_places=2,
+                                    default=25.00)
+    price_min = models.DecimalField(max_digits=8,
+                                    decimal_places=2,
+                                    default=0.00)
+
+    def __str__(self):
+        return str(self.next_ship_date)
+
+
+class UserExcludedKeyword(models.Model):
+    user = models.ForeignKey(EtsyUser)
+    excluded_keywords = models.ForeignKey(Keyword, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.excluded_keywords)
+
+
+class UserIncludedKeyword(models.Model):
+    user = models.ForeignKey(EtsyUser)
+    included_keywords = models.ForeignKey(Keyword, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.included_keywords)
