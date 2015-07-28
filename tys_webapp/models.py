@@ -63,7 +63,7 @@ class UserPreference(models.Model):
 
 class UserExcludedKeyword(models.Model):
     user = models.ForeignKey(EtsyUser)
-    excluded_keywords = models.ForeignKey(Keyword, blank=True, null=True)
+    excluded_keywords = models.ManyToManyField(Keyword, blank=True, null=True)
 
     def __str__(self):
         return str(self.excluded_keywords)
@@ -71,7 +71,7 @@ class UserExcludedKeyword(models.Model):
 
 class UserIncludedKeyword(models.Model):
     user = models.ForeignKey(EtsyUser)
-    included_keywords = models.ForeignKey(Keyword, blank=True, null=True)
+    included_keywords = models.ManyToManyField(Keyword, blank=True, null=True)
 
     def __str__(self):
         return str(self.included_keywords)

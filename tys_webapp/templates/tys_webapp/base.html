@@ -1,8 +1,7 @@
 {% load bootstrap3 %}
-{% load staticfiles %}
 {% bootstrap_css %}
 {% bootstrap_javascript %}
-
+{% load staticfiles %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,6 +18,9 @@
         <header>
             <h1>Treat Yo'Self{% block title2 %}{% endblock %}</h1>
         </header>
+
+        {% block navbar %}{% endblock %}
+
         <div class="container page">
             <div class="content">
                 {% block content %}{% endblock %}

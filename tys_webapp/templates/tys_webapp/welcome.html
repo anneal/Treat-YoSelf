@@ -4,9 +4,18 @@
 {% block title %} - Etsy Edition{% endblock %}
 {% block title2 %} - Etsy Edition{% endblock %}
 
-{% block content %}
-    <p><br><br>Hello {{ username }}</p>
+{% block navbar %}
+<nav class="navbar">
+    <div class="container-fluid">
+        <div class="nav navbar-nav navbar-right">
+            Signed in as {{ username }}   <a href="/logout/" role="button" class="btn btn-default navbar-btn">Log Out</a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
 
+{% block content %}
+    <br><br>
     <form class="PreferenceForm" method="POST">
     {% csrf_token %}
     {% bootstrap_form form layout="horizontal" %}
