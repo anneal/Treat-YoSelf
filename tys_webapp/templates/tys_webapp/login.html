@@ -1,20 +1,24 @@
 {% extends 'tys_webapp/base.html' %}
-{% load bootstrap3 %}
 
 {% block title %} - Etsy Edition{% endblock %}
 
 {% block title2 %} - Etsy Edition{% endblock %}
 
 {% block content %}
-    <h1>Sign In</h1>
+    <p><br><br>Treat Yo'Self collaborates with the Etsy website to subscribe you to limitless Etsy gifts.<br>Want an Etsy surprise to be shipped monthly? Quarterly? Weekly?<br>Set your price range, a few likes and dislikes, and how often you want to <strong>Treat Yo'Self</strong><br><br><br></p>
+
+
     {% if message %}
-            {% bootstrap_alert message alert_type='danger' %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
     {% endif %}
+
     <form action="{% url 'login' %}" method="POST">
         {% csrf_token %}
         Enter your ETSY username
-        <input type="text" name="user_id" size="100">
-        <br><br>
-        <input type="submit" value="Treat Yo Self!">
+        <input type="text" name="user_id" size="50">
+        <br><br><br>
+        <input type="submit" role="button" class="btn btn-default" value="Treat Yo Self!"/>
     </form>
 {% endblock %}

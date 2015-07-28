@@ -48,14 +48,20 @@ class EtsyUser(models.Model):
 
 class UserPreference(models.Model):
     user = models.OneToOneField(EtsyUser)
-    ship_frequency = models.PositiveIntegerField(default=14)
-    next_ship_date = models.DateField(default=timezone.now)
+    ship_frequency = models.PositiveIntegerField(default=14,
+                                                 verbose_name='Days between \
+                                                 Treat Yo\'Self Orders')
+    next_ship_date = models.DateField(default=timezone.now,
+                                      verbose_name='Expected Order Date')
     price_max = models.DecimalField(max_digits=8,
                                     decimal_places=2,
-                                    default=25.00)
+                                    default=25.00,
+                                    verbose_name='Max Price Point',
+                                    help_text='Includes Shipping Costs')
     price_min = models.DecimalField(max_digits=8,
                                     decimal_places=2,
-                                    default=0.00)
+                                    default=0.00,
+                                    verbose_name='Min Price Point')
 
     def __str__(self):
         return str(self.next_ship_date)
@@ -63,7 +69,10 @@ class UserPreference(models.Model):
 
 class UserExcludedKeyword(models.Model):
     user = models.ForeignKey(EtsyUser)
-    excluded_keywords = models.ManyToManyField(Keyword, blank=True, null=True)
+    excluded_keywords = models.ManyToManyField(Keyword,
+                                               blank=True,
+                                               null=True,
+                                               verbose_name='Treats I Like')
 
     def __str__(self):
         return str(self.excluded_keywords)
@@ -71,7 +80,11 @@ class UserExcludedKeyword(models.Model):
 
 class UserIncludedKeyword(models.Model):
     user = models.ForeignKey(EtsyUser)
-    included_keywords = models.ManyToManyField(Keyword, blank=True, null=True)
+    included_keywords = models.ManyToManyField(Keyword,
+                                               blank=True,
+                                               null=True,
+                                               verbose_name='Things I \
+                                               do NOT want')
 
     def __str__(self):
         return str(self.included_keywords)
