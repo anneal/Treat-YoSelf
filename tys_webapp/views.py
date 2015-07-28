@@ -44,7 +44,6 @@ def welcomePage(request):
         form = PreferenceForm(request.POST, instance=current_pref)
         if form.is_valid():
             updated_pref = form.save(commit=False)
-            print(updated_pref)
             inclusive_key_set = InclusiveKeywordSet(request.POST,
                                                     instance=current_user)
             exclusive_key_set = ExclusiveKeywordSet(request.POST,

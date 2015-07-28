@@ -15,9 +15,11 @@ class PreferenceForm(ModelForm):
 InclusiveKeywordSet = inlineformset_factory(EtsyUser,
                                             UserIncludedKeyword,
                                             fields=('included_keywords',),
-                                            can_delete=False)
+                                            can_delete=False,
+                                            max_num=1)
 
 ExclusiveKeywordSet = inlineformset_factory(EtsyUser,
                                             UserExcludedKeyword,
                                             fields=('excluded_keywords',),
-                                            can_delete=False)
+                                            can_delete=False,
+                                            max_num=1)
