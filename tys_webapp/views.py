@@ -120,7 +120,6 @@ def getEtsyUserPreferences(a_user):
         currentPref = UserPreference.objects.get(user=a_user)
     except UserPreference.DoesNotExist:
         currentPref = UserPreference(user=a_user)
-        currentPref.ship_frequency = '2w'
         currentPref.save()
     return currentPref
 
