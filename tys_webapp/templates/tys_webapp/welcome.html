@@ -2,8 +2,8 @@
 {% load bootstrap3 %}
 
 
-{% block title %} - Etsy Edition{% endblock %}
-{% block title2 %} - Etsy Edition{% endblock %}
+{% block title %} : Etsy Edition{% endblock %}
+{% block title2 %}Etsy Edition{% endblock %}
 
 {% block navbar %}
 <nav class="navbar">
@@ -19,10 +19,12 @@
     <br><br>
     <form class="PreferenceForm" method="POST">
     {% csrf_token %}
-    {% bootstrap_form form layout="horizontal" %}
+    {% bootstrap_form form %}
     {{ inclusive_key_set }}
     {{ exclusive_key_set }}
-    {% buttons submit='OK' reset='Cancel' layout='horizontal' %}{% endbuttons %}
+    <br>
+    <button class="btn btn-default" type="submit">OK</button>
+    <button class="btn btn-default" type="reset">Cancel</button>
     </form>
 
 {% endblock %}

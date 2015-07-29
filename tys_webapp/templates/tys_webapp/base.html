@@ -16,7 +16,8 @@
     </head>
     <body>
         <header>
-            <h1>Treat Yo'Self{% block title2 %}{% endblock %}</h1>
+            <h1>Treat Yo'Self</h1>
+            <h2>{% block title2 %}{% endblock %}</h2>
         </header>
 
         {% block navbar %}{% endblock %}
@@ -28,7 +29,6 @@
         </div>
         {% block footer %}
         <footer class="footer">
-            <hr>
             <p>&copy; anneal 2015</p>
         </footer>
         {% endblock %}

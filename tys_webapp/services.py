@@ -73,7 +73,7 @@ def generateRequestURL(URL_ext, params=[]):
     if params:
         paramList.update(params)
     paramString = ''.join(['&' + key + '=' + paramList[key]
-                            for key in paramList])[1:]
+                           for key in paramList])[1:]
     return etsyAPI_URL + URL_ext + '?' + paramString
 
 
