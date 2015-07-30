@@ -1,4 +1,5 @@
-from .models import User, EtsyUser, Keyword, UserPreference
+from .models import User, EtsyUser, Keyword, \
+                    UserPreference, UserExcludedKeyword, Listing
 from django.contrib.auth import authenticate, login
 
 import requests
@@ -77,6 +78,15 @@ def generateRequestURL(URL_ext, params=[]):
     return etsyAPI_URL + URL_ext + '?' + paramString
 
 
+def createListing(a_listing_id):
+    try:
+        currentListing = Listing.objects.get(listing_id=a_listing_id)
+    except Listing.DoesNotExist:
+        currentListing = Listing(listing_id=a_listing_id)
+        currentListing.save()
+    return currentListing
+
+
 def getKeywords():
     print('Heading to Etsy to get the keywords')
     URL_ext = '/taxonomy/categories'
@@ -113,3 +123,101 @@ def getSubkeywords(URL_ext):
             name = category['name']
             getSubkeywords(URL_ext + '/' + name)
     return True
+
+
+class SuggestedListing():
+
+    MIN_NUM_LISTINGS = 3
+
+    def __init__(self, a_user):
+        self.my_etsy_user = a_user
+        self.listings = []
+
+    def generate(self):
+        self.listings = []
+        page = 0
+        while len(self.listings) < self.MIN_NUM_LISTINGS:
+            page += 1
+            response = self.getListingsFromEtsy(page)
+            self.listings.extend(self.cleanupListingResults(response))
+
+    def saveToUser(self):
+        first_listing = self.listings[0]
+        self.my_etsy_user.listing = createListing(first_listing['listing_id'])
+        self.my_etsy_user.save()
+
+    def putInCart(self):
+        ## TODO put listing in Etsy cart
+        pass
+
+    def getListingsFromEtsy(self, page=1):
+        URL_ext = '/listings/active'
+        self.my_pref = UserPreference.objects.get(user=self.my_etsy_user)
+        params = {'limit': str(self.MIN_NUM_LISTINGS + 10),
+                  'page': str(page),
+                  'max_price': str(self.my_pref.price_max),
+                  'min_price': str(self.my_pref.price_min)}
+        return getRequestFromEtsy(URL_ext, params)['results']
+
+    def cleanupListingResults(self, rawListings):
+        return self.removeHighShippingCost(
+                    self.removeNonKeywordListings(
+                        self.removeNonHandmadeListings(rawListings)))
+
+    def removeNonHandmadeListings(self, rawListings):
+        return [eachListing for eachListing in rawListings
+                if eachListing['who_made'] == 'i_did' and
+                   eachListing['is_supply'] == 'false' and
+                   eachListing['is_digital'] is not True]
+
+    def removeNonKeywordListings(self, rawListings):
+        nonPrefs = UserExcludedKeyword.objects.get(user=self.my_etsy_user)
+        nonKeywords = [each.keyword
+                       for each in nonPrefs.excluded_keywords.all()]
+        validListings = []
+        for eachListing in rawListings:
+            acceptableListing = True
+            for keyword in nonKeywords:
+                if (keyword in eachListing['category_path'] or
+                    keyword in eachListing['title'] or
+                    keyword in eachListing['tags']):
+                        acceptableListing = False
+            if acceptableListing:
+                validListings.append(eachListing)
+        return validListings
+
+    def removeHighShippingCost(self, rawListings):
+        validListings = []
+        for eachListing in rawListings:
+            listingShippingCost = self.getShippingCost(eachListing)
+            totalCost = float(eachListing['price']) + float(listingShippingCost)
+            if totalCost <= float(self.my_pref.price_max):
+                validListings.append(eachListing)
+        return validListings
+
+    def getShippingCost(self, listing):
+        country = self.my_etsy_user.etsy_country_id
+        listing_id = listing['listing_id']
+        URL_ext = '/listings/' + str(listing_id) + '/shipping/info'
+        shippingInfo = getRequestFromEtsy(URL_ext)['results']
+        shippingCost = [shipProtocol['primary_cost']
+                        for shipProtocol in shippingInfo
+                        if shipProtocol['destination_country_id'] == country]
+        if len(shippingCost) == 0:
+            shippingCost = [shipProtocol['primary_cost']
+                            for shipProtocol in shippingInfo
+                            if shipProtocol['destination_country_name']
+                            == 'Everywhere Else']
+        if len(shippingCost) == 0:
+            shippingCost = [100000]
+        return shippingCost[0]
+
+    def getListingInfo(self, *fields):
+        results = []
+        for listing in self.listings:
+            listingInfo = {}
+            for key in listing:
+                if key in fields:
+                    listingInfo[key] = listing[key]
+            results.append(listingInfo)
+        return results
