@@ -9,19 +9,19 @@ from .services import *
 from .settings import CONSUMER_KEY, CONSUMER_SECRET, \
                       OAUTH_SCOPE, SCOPE_URL_EXT
 
-token_secret = ''
 
 def oauthLogin(request):
     request_url = etsyAPI_URL + '/oauth/request_token' + SCOPE_URL_EXT
     headeroauth = OAuth1(CONSUMER_KEY,
                          CONSUMER_SECRET,
                          signature_type='auth_header',
-                         callback_uri='http://127.0.0.1:8000/welcome')
+                         callback_uri='http://127.0.0.1:8000/welcome1')
     response = requests.post(request_url, auth=headeroauth)
     parsed_response = parse_qs(response.text)
-    token = parsed_response['oauth_token'][0]
-    token_secret = parsed_response['oauth_token_secret'][0]
-    print('HERE')
+    current_user = EtsyUser.objects.get(user=request.user)
+    current_user.access_token_secret = parsed_response['oauth_token_secret'][0]
+    current_user.save()
+    print(current_user.access_token_secret)
     return HttpResponseRedirect(parsed_response['login_url'][0])
 
 
@@ -52,21 +52,32 @@ def loginPage(request):
     return render(request, 'tys_webapp/login.html')
 
 
-def welcomePage(request):
+def initialWelcomePage(request):
     if not request.user.is_authenticated():
         return redirect('/login/')
 
-    print(token_secret)
-
+    current_user = EtsyUser.objects.get(user=request.user)
+    print('this is:' + current_user.access_token_secret)
+    print(request.GET['oauth_verifier'])
     headeroauth = OAuth1(CONSUMER_KEY,
-                         CONSUMER_SECRET,
-                         request.GET['oauth_token'],
-                         token_secret,
-                         request.GET['oauth_verifier'],
+                         client_secret=CONSUMER_SECRET,
+                         resource_owner_key=request.GET['oauth_token'],
+                         resource_owner_secret=current_user.access_token_secret,
+                         verifier=request.GET['oauth_verifier'],
                          signature_type='auth_header')
-    response = requests.post(etsyAPI_URL + '/access_token', auth=headeroauth)
+    access_url = etsyAPI_URL + '/oauth/access_token'
+    response = requests.post(url=access_url, auth=headeroauth)
+    print(response)
     credentials = parse_qs(response.text)
-    # TODO save credentials to database
+    current_user.access_token = credentials['oauth_token'][0]
+    current_user.access_token_secret = credentials['oauth_token_secret'][0]
+    current_user.save()
+    return redirect('/welcome/')
+
+
+def welcomePage(request):
+    if not request.user.is_authenticated():
+        return redirect('/login/')
 
     current_user = EtsyUser.objects.get(user=request.user)
     current_pref = getEtsyUserPreferences(current_user)
