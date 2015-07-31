@@ -1,8 +1,8 @@
+import requests
+from django.contrib.auth import authenticate, login
 from .models import User, EtsyUser, Keyword, \
                     UserPreference, UserExcludedKeyword, Listing
-from django.contrib.auth import authenticate, login
-
-import requests
+from .settings import CONSUMER_KEY
 
 
 etsyAPI_URL = 'https://openapi.etsy.com/v2'
@@ -70,7 +70,7 @@ def getRequestFromEtsy(URL_ext, params=[]):
 
 ## TODO from apiSettings import my_etsy_api_key
 def generateRequestURL(URL_ext, params=[]):
-    paramList = {'api_key': 'yrgd2tnzkt0ig8auwvft75b0'}
+    paramList = {'api_key': CONSUMER_KEY}
     if params:
         paramList.update(params)
     paramString = ''.join(['&' + key + '=' + paramList[key]

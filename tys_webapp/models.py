@@ -40,6 +40,8 @@ class EtsyUser(models.Model):
     etsy_user_id = models.PositiveIntegerField(default=0)
     etsy_gender = models.CharField(max_length=100, default='')
     etsy_country_id = models.PositiveIntegerField(default=0, null=True)
+    access_token = models.CharField(max_length=200, null=True)
+    access_token_secret = models.CharField(max_length=200, null=True)
     listing = models.ForeignKey(Listing, blank=True, null=True)
 
     def __str__(self):
@@ -71,8 +73,7 @@ class UserExcludedKeyword(models.Model):
     user = models.ForeignKey(EtsyUser)
     excluded_keywords = models.ManyToManyField(Keyword,
                                                blank=True,
-                                               null=True,
-                                               verbose_name='Treats I Like')
+                                               verbose_name='Things I Like')
 
     def __str__(self):
         return str(self.excluded_keywords)
@@ -82,7 +83,6 @@ class UserIncludedKeyword(models.Model):
     user = models.ForeignKey(EtsyUser)
     included_keywords = models.ManyToManyField(Keyword,
                                                blank=True,
-                                               null=True,
                                                verbose_name='Things I \
                                                do NOT want')
 
