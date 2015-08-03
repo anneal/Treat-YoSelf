@@ -3,6 +3,8 @@ __pycache__/
 *.log
 *.pyc
 
+staticfiles
+
 settings.py
 tys_webapp/settings.py
 treatyoself/settings.py

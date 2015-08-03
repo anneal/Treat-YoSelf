@@ -1,0 +1,1 @@
+web: gunicorn treatyoself.wsgi --log-file -
