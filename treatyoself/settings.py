@@ -3,26 +3,18 @@ import dj_database_url
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 STATIC_ROOT = 'staticfiles'
-
 STATIC_URL = '/static/'
-
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'tys_webapp/static'),
 )
 
+
 SECRET_KEY = os.environ['TYS_SECRET_KEY']
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-######################
-# TEST SETTINGS:
-#DEBUG = True
-#ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-######################
-# PRODUCTION SETTINGS:
 DEBUG = True
+
 # Allow all host headers
 ALLOWED_HOSTS = ['*']
 
@@ -34,9 +26,6 @@ CSRF_COOKIE_HTTPONLY = False
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-
-
-# Application definition
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -80,30 +69,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'treatyoself.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'treatyoselfdb',
-        'USER': 'admin',
-        'PASSWORD': os.environ['TYS_DB_PASSWORD'],
-        'HOST': '',
-        'PORT': '',
-    }
-}
-
-# PRODUCTION SETTING
-# Parse database configuration from $DATABASE_URL
 DATABASES['default'] =  dj_database_url.config()
-
-
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.8/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -115,12 +81,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-STATIC_URL = '/static/'
-STATIC_ROOT = 'treat-yoself.heroku.com/static/'
 
 # Default settings
 BOOTSTRAP3 = {
