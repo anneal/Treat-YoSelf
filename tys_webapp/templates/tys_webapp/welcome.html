@@ -16,6 +16,15 @@
 {% endblock %}
 
 {% block content %}
+
+    <br>
+
+    {% if message %}
+        <div class="alert alert-warning" role="alert">
+            {{ message }}
+        </div>
+    {% endif %}
+
     <br><br>
     <form class="PreferenceForm" method="POST">
     {% csrf_token %}

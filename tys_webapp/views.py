@@ -11,18 +11,21 @@ from .settings import CONSUMER_KEY, CONSUMER_SECRET, \
 
 
 def oauthLogin(request):
-    request_url = etsyAPI_URL + '/oauth/request_token' + SCOPE_URL_EXT
-    headeroauth = OAuth1(CONSUMER_KEY,
-                         CONSUMER_SECRET,
-                         signature_type='auth_header',
-                         callback_uri='http://127.0.0.1:8000/welcome1')
-    response = requests.post(request_url, auth=headeroauth)
-    parsed_response = parse_qs(response.text)
-    current_user = EtsyUser.objects.get(user=request.user)
-    current_user.access_token_secret = parsed_response['oauth_token_secret'][0]
-    current_user.save()
-    print(current_user.access_token_secret)
-    return HttpResponseRedirect(parsed_response['login_url'][0])
+    if not request.user.is_authenticated():
+        return redirect('/login/')
+    else:
+        request_url = etsyAPI_URL + '/oauth/request_token' + SCOPE_URL_EXT
+        headeroauth = OAuth1(CONSUMER_KEY,
+                             CONSUMER_SECRET,
+                             signature_type='auth_header',
+                             callback_uri='http://127.0.0.1:8000/welcome1')
+        response = requests.post(request_url, auth=headeroauth)
+        parsed_response = parse_qs(response.text)
+        current_user = EtsyUser.objects.get(user=request.user)
+        current_user.access_token_secret = parsed_response['oauth_token_secret'][0]
+        current_user.save()
+        print(current_user.access_token_secret)
+        return HttpResponseRedirect(parsed_response['login_url'][0])
 
 
 def index(request):
@@ -33,6 +36,7 @@ def index(request):
 
 
 def logout_view(request):
+    # TODO what if there's a logout error. IE, a non user types in /logout/
     logout(request)
     return redirect('/')
 
@@ -94,7 +98,13 @@ def welcomePage(request):
                 updated_pref.save()
                 inclusive_key_set.save()
                 exclusive_key_set.save()
-                return HttpResponse('Successful update')
+                return render(request,
+                              'tys_webapp/welcome.html',
+                              {'form': form,
+                               'inclusive_key_set': inclusive_key_set,
+                               'exclusive_key_set': exclusive_key_set,
+                               'username': request.user.username,
+                               'message': 'Preference updates saved.'})
     else:
         form = PreferenceForm(instance=current_pref)
         inclusive_key_set = InclusiveKeywordSet(instance=current_user)
