@@ -9,7 +9,7 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'tys_webapp/static'),
 )
 
 SECRET_KEY = os.environ['TYS_SECRET_KEY']
