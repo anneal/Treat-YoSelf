@@ -13,7 +13,7 @@ STATICFILES_DIRS = (
 SECRET_KEY = os.environ['TYS_SECRET_KEY']
 
 
-DEBUG = True
+DEBUG = False
 
 # Allow all host headers
 ALLOWED_HOSTS = ['*']
