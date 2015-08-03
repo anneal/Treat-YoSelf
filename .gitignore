@@ -1,2 +1,5 @@
 __pycache__/
 *.log
+
+settings.py
+tys_webapp/settings.py
