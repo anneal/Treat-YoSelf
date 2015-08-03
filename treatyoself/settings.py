@@ -3,7 +3,7 @@ import dj_database_url
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = 'treat-yoself.heroku.com/static/'
+STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'tys_webapp/static'),
@@ -69,7 +69,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'treatyoself.wsgi.application'
 
-DATABASES['default'] =  dj_database_url.config()
+DATABASES = {
+    'default': dj_database_url.config()
+}
 
 LANGUAGE_CODE = 'en-us'
 
