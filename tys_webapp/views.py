@@ -101,7 +101,7 @@ def oauthLogin(request):
             headeroauth = OAuth1(CONSUMER_KEY,
                                  CONSUMER_SECRET,
                                  signature_type='auth_header',
-                                 callback_uri='http://127.0.0.1:8000/oauthlogin/')
+                                 callback_uri='treat-yoself.heroku.com')
             response = requests.post(request_url, auth=headeroauth)
             parsed_response = parse_qs(response.text)
             saved_secret = parsed_response['oauth_token_secret'][0]
