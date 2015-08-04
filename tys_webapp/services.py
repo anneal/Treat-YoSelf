@@ -1,31 +1,70 @@
 import requests
+from requests_oauthlib import OAuth1
 from django.contrib.auth import authenticate, login
 from .models import User, EtsyUser, Keyword, \
                     UserPreference, UserExcludedKeyword, Listing
-from .settings import CONSUMER_KEY
+from .settings import CONSUMER_KEY, CONSUMER_SECRET
 
 
 etsyAPI_URL = 'https://openapi.etsy.com/v2'
 
 
-def authenticateUserAndLogin(request, validUsername):
-    user = authenticate(username=validUsername, password='123')
-    if user is not None and user.is_active:
-        login(request, user)
+def validOauth(request):
+    current_user = EtsyUser.objects.get(user=request.user)
+    headeroauth = OAuth1(CONSUMER_KEY,
+                         client_secret=CONSUMER_SECRET,
+                         resource_owner_key=current_user.access_token,
+                         resource_owner_secret=current_user.access_token_secret,
+                         signature_type='auth_header')
+    user_url = etsyAPI_URL + '/users/__SELF__'
+    response = requests.get(url=user_url, auth=headeroauth)
+    if response.status_code == 200:
         return True
-    return False
+    else:
+        return False
 
 
-def updateUser(validUsername):
+def createUser(validUsername):
     try:
         currentUser = User.objects.get(username=validUsername)
     except User.DoesNotExist:
         currentUser = User.objects.create_user(validUsername,
                                                'abc@gmail.com',
                                                '123')
-        currentUser.save()
+    currentUser.save()
+    return currentUser
+
+
+def getEtsyUser(a_user):
+    try:
+        currentUser = EtsyUser.objects.get(user=a_user)
+    except EtsyUser.DoesNotExist:
+        currentUser = EtsyUser.objects.create(user=a_user)
+    currentUser.save()
+    return currentUser
+
+
+def validEtsyUsername(user_input):
+    URL_ext = '/users/%s' % user_input
+    try:
+        getRequestFromEtsy(URL_ext)['results'][0]['user_id']
+    except:
+        return False
+    return True
+
+
+def authenticateUserAndLogin(request, a_user):
+    user = authenticate(username=a_user.username, password='123')
+    if user is not None and user.is_active:
+        login(request, user)
+        return True
+    return False
+
+
+def updateUser(currentUser):
     updateEtsyProfile(currentUser)
-    return currentUser.username
+    # TODO - update email address
+    currentUser.save()
 
 
 def updateEtsyProfile(a_user):
@@ -55,20 +94,10 @@ def getEtsyUserPreferences(a_user):
     return currentPref
 
 
-def validEtsyUsername(user_input):
-    URL_ext = '/users/%s' % user_input
-    try:
-        getRequestFromEtsy(URL_ext)['results'][0]['user_id']
-    except:
-        return False
-    return True
-
-
 def getRequestFromEtsy(URL_ext, params=[]):
     return requests.get(generateRequestURL(URL_ext, params)).json()
 
 
-## TODO from apiSettings import my_etsy_api_key
 def generateRequestURL(URL_ext, params=[]):
     paramList = {'api_key': CONSUMER_KEY}
     if params:

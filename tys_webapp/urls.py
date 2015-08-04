@@ -5,7 +5,5 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^welcome/?$', views.welcomePage, name='welcome'),
     url(r'^oauthlogin/?$', views.oauthLogin, name='oauth'),
-    url(r'^welcome1/?$', views.initialWelcomePage, name='welcome1'),
-    url(r'^login/?$', views.loginPage, name='login'),
     url(r'^logout/?$', views.logout_view, name='logout')
 ]

@@ -4,10 +4,12 @@
 
 {% block title2 %}Etsy Edition{% endblock %}
 
-{% block navbar %}
-<p class="navbar-text navbar-right">Signed in as <a href="#" class="navbar-link">MARTHA STEWART</a></p>
-{% endblock %}
-
 {% block content %}
-    <p>Treat Yo'Self with Etsy</p>
+    <p><br><br>Treat Yo'Self collaborates with the Etsy website to subscribe you to limitless Etsy gifts.<br>Want an Etsy surprise to be shipped monthly? Quarterly? Weekly?<br>Set your price range, a few likes and dislikes, and how often you want to <strong>Treat Yo'Self</strong><br><br><br></p>
+
+    <form action="{% url 'index' %}" method="POST">
+        {% csrf_token %}
+        <br><br><br>
+        <input type="submit" role="button" class="btn btn-default" value="Treat Yo Self!"/>
+    </form>
 {% endblock %}

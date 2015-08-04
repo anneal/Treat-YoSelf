@@ -10,78 +10,24 @@ from .settings import CONSUMER_KEY, CONSUMER_SECRET, \
                       OAUTH_SCOPE, SCOPE_URL_EXT
 
 
-def oauthLogin(request):
-    if not request.user.is_authenticated():
-        return redirect('/login/')
-    else:
-        request_url = etsyAPI_URL + '/oauth/request_token' + SCOPE_URL_EXT
-        headeroauth = OAuth1(CONSUMER_KEY,
-                             CONSUMER_SECRET,
-                             signature_type='auth_header',
-                             callback_uri='http://127.0.0.1:8000/welcome1')
-        response = requests.post(request_url, auth=headeroauth)
-        parsed_response = parse_qs(response.text)
-        current_user = EtsyUser.objects.get(user=request.user)
-        current_user.access_token_secret = parsed_response['oauth_token_secret'][0]
-        current_user.save()
-        print(current_user.access_token_secret)
-        return HttpResponseRedirect(parsed_response['login_url'][0])
+saved_secret = ''
 
 
 def index(request):
-    if not request.user.is_authenticated():
-        return redirect('/login/')
-    else:
+    if authenticateUserAndLogin(request, request.user) and validOauth(request):
+        updateUser(request.user)
         return redirect('/welcome/')
-
-
-def logout_view(request):
-    # TODO what if there's a logout error. IE, a non user types in /logout/
-    logout(request)
-    return redirect('/')
-
-
-def loginPage(request):
-    if request.method == 'POST':
-        input_user_id = request.POST['user_id']
-        if (validEtsyUsername(input_user_id) and
-             authenticateUserAndLogin(request, updateUser(input_user_id))):
-                updateUser(input_user_id)
-                return redirect('/oauthlogin/')
+    else:
+        if request.method == 'POST':
+            return redirect('/oauthlogin/')
         else:
             return render(request,
-                          'tys_webapp/login.html',
-                          {'message':
-                           'Invalid username entered. Try again?'})
-    return render(request, 'tys_webapp/login.html')
-
-
-def initialWelcomePage(request):
-    if not request.user.is_authenticated():
-        return redirect('/login/')
-
-    current_user = EtsyUser.objects.get(user=request.user)
-    print('this is:' + current_user.access_token_secret)
-    print(request.GET['oauth_verifier'])
-    headeroauth = OAuth1(CONSUMER_KEY,
-                         client_secret=CONSUMER_SECRET,
-                         resource_owner_key=request.GET['oauth_token'],
-                         resource_owner_secret=current_user.access_token_secret,
-                         verifier=request.GET['oauth_verifier'],
-                         signature_type='auth_header')
-    access_url = etsyAPI_URL + '/oauth/access_token'
-    response = requests.post(url=access_url, auth=headeroauth)
-    print(response)
-    credentials = parse_qs(response.text)
-    current_user.access_token = credentials['oauth_token'][0]
-    current_user.access_token_secret = credentials['oauth_token_secret'][0]
-    current_user.save()
-    return redirect('/welcome/')
+                          'tys_webapp/index.html')
 
 
 def welcomePage(request):
-    if not request.user.is_authenticated():
-        return redirect('/login/')
+    if not validOauth(request) and not request.user.is_authenticated():
+        return redirect('/')
 
     current_user = EtsyUser.objects.get(user=request.user)
     current_pref = getEtsyUserPreferences(current_user)
@@ -116,3 +62,55 @@ def welcomePage(request):
                    'inclusive_key_set': inclusive_key_set,
                    'exclusive_key_set': exclusive_key_set,
                    'username': request.user.username})
+
+
+def oauthLogin(request):
+    global saved_secret
+
+    try:
+        if 'oauth_verifier' in request.GET:
+            headeroauth = OAuth1(CONSUMER_KEY,
+                                 client_secret=CONSUMER_SECRET,
+                                 resource_owner_key=request.GET['oauth_token'],
+                                 resource_owner_secret=saved_secret,
+                                 verifier=request.GET['oauth_verifier'],
+                                 signature_type='auth_header')
+            access_url = etsyAPI_URL + '/oauth/access_token'
+            response = requests.post(url=access_url, auth=headeroauth)
+            credentials = parse_qs(response.text)
+            headeroauth = OAuth1(CONSUMER_KEY,
+                                 client_secret=CONSUMER_SECRET,
+                                 resource_owner_key=credentials['oauth_token'][0],
+                                 resource_owner_secret=credentials['oauth_token_secret'][0],
+                                 signature_type='auth_header')
+            user_url = etsyAPI_URL + '/users/__SELF__'
+            response = requests.get(url=user_url, auth=headeroauth)
+            user_data = response.json()['results'][0]
+            current_user = createUser(user_data['login_name'])
+            etsyUser = getEtsyUser(current_user)
+            etsyUser.access_token = credentials['oauth_token'][0]
+            etsyUser.access_token_secret = credentials['oauth_token_secret'][0]
+            etsyUser.save()
+            authenticateUserAndLogin(request, current_user)
+            return redirect('/')
+        else:
+            request_url = etsyAPI_URL + '/oauth/request_token' + SCOPE_URL_EXT
+            headeroauth = OAuth1(CONSUMER_KEY,
+                                 CONSUMER_SECRET,
+                                 signature_type='auth_header',
+                                 callback_uri='http://127.0.0.1:8000/oauthlogin/')
+            response = requests.post(request_url, auth=headeroauth)
+            parsed_response = parse_qs(response.text)
+            saved_secret = parsed_response['oauth_token_secret'][0]
+            return HttpResponseRedirect(parsed_response['login_url'][0])
+    except Exception as E:
+        print(E)
+        return redirect('/')
+
+
+def logout_view(request):
+    if not request.user.is_authenticated():
+        return redirect('/')
+    else:
+        logout(request)
+        return redirect('/')
