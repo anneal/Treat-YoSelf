@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -53,8 +54,8 @@ class UserPreference(models.Model):
     ship_frequency = models.PositiveIntegerField(default=14,
                                                  verbose_name='Days between \
                                                  Treat Yo\'Self Orders')
-    next_ship_date = models.DateField(default=timezone.now,
-                                      verbose_name='Expected Order Date')
+    order_date = models.DateField(default=timezone.now,
+                                  verbose_name='Expected Order Date')
     price_max = models.DecimalField(max_digits=8,
                                     decimal_places=2,
                                     default=25.00,
@@ -65,8 +66,27 @@ class UserPreference(models.Model):
                                     default=0.00,
                                     verbose_name='Min Price Point')
 
+    def save(self, *args, **kwargs):
+        self.check_max()
+        self.check_min()
+        super(UserPreference, self).save(*args, **kwargs)
+
+    def check_max(self):
+        if self.price_max < 5.0:
+            self.price_max = 5.0
+
+    def check_min(self):
+        if self.price_min >= self.price_max:
+            self.price_min = self.price_max - 2.0
+        if self.price_min < 0:
+            self.price_min = 0.0
+
+    def _next_order_date(self):
+        return self.order_date + timedelta(days=self.ship_frequency)
+    next_order_date = property(_next_order_date)
+
     def __str__(self):
-        return str(self.next_ship_date)
+        return str(self.order_date)
 
 
 class UserExcludedKeyword(models.Model):

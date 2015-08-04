@@ -8,7 +8,7 @@ class PreferenceForm(ModelForm):
     class Meta:
         model = UserPreference
         fields = ['ship_frequency',
-                  'next_ship_date',
+                  'order_date',
                   'price_min',
                   'price_max']
 

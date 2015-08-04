@@ -9,8 +9,8 @@ from .settings import CONSUMER_KEY, CONSUMER_SECRET
 etsyAPI_URL = 'https://openapi.etsy.com/v2'
 
 
-def validOauth(request):
-    current_user = EtsyUser.objects.get(user=request.user)
+def validOauth(a_user):
+    current_user = EtsyUser.objects.get(user=a_user)
     headeroauth = OAuth1(CONSUMER_KEY,
                          client_secret=CONSUMER_SECRET,
                          resource_owner_key=current_user.access_token,
@@ -62,9 +62,8 @@ def authenticateUserAndLogin(request, a_user):
 
 
 def updateUser(currentUser):
+    #TODO add email address
     updateEtsyProfile(currentUser)
-    # TODO - update email address
-    currentUser.save()
 
 
 def updateEtsyProfile(a_user):
@@ -98,6 +97,20 @@ def getRequestFromEtsy(URL_ext, params=[]):
     return requests.get(generateRequestURL(URL_ext, params)).json()
 
 
+def oauthRequestToEtsy(URL_ext, current_user, params=[]):
+    headeroauth = OAuth1(CONSUMER_KEY,
+                         client_secret=CONSUMER_SECRET,
+                         resource_owner_key=current_user.access_token,
+                         resource_owner_secret=current_user.access_token_secret,
+                         signature_type='auth_header')
+    response = requests.post(url=generateOauthRequestURL(URL_ext, params),
+                            auth=headeroauth)
+    if response.status_code == 200:
+        return True
+    else:
+        return False
+
+
 def generateRequestURL(URL_ext, params=[]):
     paramList = {'api_key': CONSUMER_KEY}
     if params:
@@ -105,6 +118,17 @@ def generateRequestURL(URL_ext, params=[]):
     paramString = ''.join(['&' + key + '=' + paramList[key]
                            for key in paramList])[1:]
     return etsyAPI_URL + URL_ext + '?' + paramString
+
+
+def generateOauthRequestURL(URL_ext, params=[]):
+    paramList = {}
+    if params:
+        paramList.update(params)
+        paramString = ''.join(['&' + key + '=' + paramList[key]
+                               for key in paramList])[1:]
+        return etsyAPI_URL + URL_ext + '?' + paramString
+    else:
+        return etsyAPI_URL + URL_ext
 
 
 def createListing(a_listing_id):
@@ -154,9 +178,16 @@ def getSubkeywords(URL_ext):
     return True
 
 
+def resetOrderDate(a_user):
+    current_pref = UserPreference.objects.get(user=a_user)
+    current_pref.order_date = current_pref.next_order_date
+    current_pref.next_order_date
+    current_pref.save()
+
+
 class SuggestedListing():
 
-    MIN_NUM_LISTINGS = 3
+    MIN_NUM_LISTINGS = 1
 
     def __init__(self, a_user):
         self.my_etsy_user = a_user
@@ -176,8 +207,13 @@ class SuggestedListing():
         self.my_etsy_user.save()
 
     def putInCart(self):
-        ## TODO put listing in Etsy cart
-        pass
+        URL_ext = '/users/' + str(self.my_etsy_user.etsy_user_id) + '/carts'
+        first_listing = self.listings[0]
+        params = {'user_id': str(self.my_etsy_user.etsy_user_id),
+                  'listing_id': str(first_listing['listing_id']),
+                  'quantity': str(1)}
+        if oauthRequestToEtsy(URL_ext, self.my_etsy_user, params):
+            self.saveToUser()
 
     def getListingsFromEtsy(self, page=1):
         URL_ext = '/listings/active'
@@ -200,9 +236,15 @@ class SuggestedListing():
                    eachListing['is_digital'] is not True]
 
     def removeNonKeywordListings(self, rawListings):
-        nonPrefs = UserExcludedKeyword.objects.get(user=self.my_etsy_user)
-        nonKeywords = [each.keyword
-                       for each in nonPrefs.excluded_keywords.all()]
+        try:
+            nonPrefs = UserExcludedKeyword.objects.get(user=self.my_etsy_user)
+            nonKeywords = [each.keyword
+                           for each in nonPrefs.excluded_keywords.all()]
+        except Exception:
+            nonKeywords = []
+
+        nonKeywords.append('ADD-ON')
+
         validListings = []
         for eachListing in rawListings:
             acceptableListing = True

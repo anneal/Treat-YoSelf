@@ -14,7 +14,8 @@ saved_secret = ''
 
 
 def index(request):
-    if authenticateUserAndLogin(request, request.user) and validOauth(request):
+    if authenticateUserAndLogin(request, request.user) \
+       and validOauth(request.user):
         updateUser(request.user)
         return redirect('/welcome/')
     else:
@@ -26,8 +27,10 @@ def index(request):
 
 
 def welcomePage(request):
-    if not validOauth(request) and not request.user.is_authenticated():
-        return redirect('/')
+    if request.user.is_anonymous() or \
+        not validOauth(request.user) or \
+        not request.user.is_authenticated():
+            return redirect('/')
 
     current_user = EtsyUser.objects.get(user=request.user)
     current_pref = getEtsyUserPreferences(current_user)
