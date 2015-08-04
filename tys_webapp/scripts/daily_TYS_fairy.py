@@ -11,7 +11,7 @@ from tys_webapp.models import UserPreference
 all_user_prefs = UserPreference.objects.all()
 
 users_needing_listings = [pref.user for pref in all_user_prefs]
-#                          if date.today() >= pref.order_date]
+                          if date.today() >= pref.order_date]
 
 count = 0
 for each in users_needing_listings:
